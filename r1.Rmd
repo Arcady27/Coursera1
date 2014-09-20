@@ -1,0 +1,82 @@
+library(caret);
+library(e1071);
+
+
+#reading data
+training <- read.csv("C:/Downloads/pml-training.csv")
+testing <- read.csv("C:/Downloads/pml-testing.csv")
+
+#testing_new data is testing data without NA values
+testing_new<-testing;
+for (i in 1:20)
+{
+     for (j in 1:160)
+     {
+         if (is.na(testing[i,j]))
+         {
+             testing_new<-testing_new[,-j];
+         }
+     }
+}
+
+#training_new data contains the same columns as testing_set data and also "classe" column
+training_new<-data.frame(matrix(NA, nrow = 19622, ncol = 0))
+column_names<-colnames(testing_new);
+training_new[,"classe"]<-training[,"classe"];
+for (i in 1:length(column_names))
+{
+  training_new[,column_names[i]]<-training[,column_names[i]];
+}
+
+#making data in training and testing sets numeric
+for (i in 1:ncol(training_new))
+{
+	training_new[,i]<-as.numeric(training_new[,i]);
+}
+
+for (i in 1:ncol(testing_new))
+{
+	testing_new[,i]<-as.numeric(testing_new[,i]);
+}
+
+#deleting noise variables
+training_new$X<-NULL;
+testing_new$X<-NULL;
+training_new$raw_timestamp_part_1<-NULL;
+testing_new$raw_timestamp_part_1<-NULL;
+training_new$raw_timestamp_part_2<-NULL;
+testing_new$raw_timestamp_part_2<-NULL;
+training_new$cvtd_timestamp<-NULL;
+testing_new$cvtd_timestamp<-NULL;
+
+#predicting
+Train<-createDataPartition(training_new$classe,p=0.7)[[1]];
+training_part<-training_new[Train,];
+testing_part<-training_new[-Train,];
+set.seed(1000);
+
+mod1<-train(classe ~.,method="gbm",data=training_part);
+mod2<-train(classe ~.,method="glm",data=training_part);
+mod3<-svm(classe ~.,data=training_part);
+
+pred1<-predict(mod1,testing_part);
+pred2<-predict(mod2,testing_part);
+pred3<-predict(mod3,testing_part);
+
+acc1<-accuracy(pred1,testing_part$classe);
+acc2<-accuracy(pred2,testing_part$classe);
+acc3<-accuracy(pred3,testing_part$classe);
+
+#stacking predictors
+pred1t<-predict(mod1,training_part);
+pred2t<-predict(mod2,training_part);
+pred3t<-predict(mod3,training_part);
+
+combinedpred<-data.frame(pred1t,pred2t,pred3t,training_part$classe);
+ModComp<-train(classe ~.,method="gam",data=training_part);
+predComb<-predict(ModComp,testing_part);
+acc4<-accuracy(predComb,testing_part$classe);
+
+#final prediction
+predFinal<-predict(mod1,testing_new);
+classesPred<-signif(predFinal,1);
