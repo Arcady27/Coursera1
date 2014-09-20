@@ -1,0 +1,19 @@
+<p>
+    1. I noticed, that testing data contains a lot of NA values, so I decided, that removing all columns, which contain NA values will be quite a good solution
+    of problem with missing data in testing dataset. Also I removed then the same columns, which I removed from testing data, from the training dataset.
+    Training dataset has now 12 columns and testing dataset – 11 columns.
+</p>
+<p>
+    2. Also I noticed, that some variables are noise variables, because how the people perform the exercises doesn’t really depend on the timestamps and the
+    row number in table. I removed following variables: “X”, “raw_timestamp_part_1”, “raw_timestamp_part_2”, “cvtd_timestamp” from both datasets.
+</p>
+<p>
+    3. Before training models and make predictions I made both datasets numeric and created a partition of training set in training part and validation part.
+</p>
+<p>
+    4. I used three training methods to train model: boosted trees (“gbm”), svm (from “e1071” package) and general linear model (“glm”). Then I predicted
+    “Classe” values on the validation data and measured accuracy of predictions. Then I stacked three predictors together using additive model (“gam”) and also
+    predicted “Classe” values on the validation data and measured accuracy of prediction. So I got four different predictions and compared accuracies of them.
+    The lowest RMSE had prediction with boosted trees, so I decided to use only this predictor to predict values of “Classe” in testing data. I made prediction
+    on testing data using “gbm” method and rounded predicted values to nearest integers (1 means Classe A, 2 means B and so on).
+</p>
